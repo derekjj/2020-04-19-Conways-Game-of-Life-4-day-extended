@@ -19,7 +19,8 @@ export default {
   },
   data() {
     return {
-      world: []
+      world: [],
+      stopped: true
     };
   },
   created() {
@@ -38,44 +39,40 @@ export default {
       }
     },
     tick() {
-      console.log(this.world[0][0]);
-      console.log(this.world[0]);
-      console.log(this.world);
       let tempWord = this.world.slice();
-      for (var row = 0; row < tempWord.length; row++) {
-        for (var col = 0; col < tempWord[0].length; col++) {
-          let numNeighbours = this.getNumNeighbours(row, col);
-          let alive = this.world[row][col];
-          switch (alive) {
-            case true:
-              console.log("alive", numNeighbours);
-              tempWord[row][col] = this.isStillAlive(numNeighbours);
-              break;
-            default:
-              console.log("dead", numNeighbours);
-              //Births: Each dead cell adjacent to exactly three live neighbors will become live in the next generation.
-              if (numNeighbours == 3) tempWord[row][col] = false;
-          }
+      for (var row = 0; row < this.world.length; row++) {
+        for (var col = 0; col < this.world[0].length; col++) {
+          tempWord[row][col] = this.aliveNextTick(row, col);
         }
       }
       this.world = tempWord.slice();
     },
-    isStillAlive(numNeighbours) {
-      //Death by isolation: Each live cell with one or fewer live neighbors will die in the next generation.
-      //Death by overcrowding: Each live cell with four or more live neighbors will die in the next generation.
-      //Survival: Each live cell with either two or three live neighbors will remain alive for the next generation.
-      if (numNeighbours <= 1 || numNeighbours >= 4) return false;
-      else return true;
-    },
-    times(iterations = 1, callback) {
-      for (let i = 0; i < iterations; i++) {
-        callback(i);
+    aliveNextTick(row, col) {
+      let numNeighbours = this.getNumNeighbours(row, col);
+      let alive = this.world[row][col];
+      switch (alive) {
+        case true:
+          //Death by isolation: Each live cell with one or fewer live neighbors will die in the next generation.
+          //Death by overcrowding: Each live cell with four or more live neighbors will die in the next generation.
+          //Survival: Each live cell with either two or three live neighbors will remain alive for the next generation.
+          return numNeighbours <= 1 || numNeighbours >= 4 ? false : true;
+        case false:
+          //Births: Each dead cell adjacent to exactly three live neighbors will become live in the next generation.
+          return numNeighbours === 3 ? true : false;
       }
     },
-    toggle(cellRow, cellCol) {
+    play(speed = 1) {
+      this.stopped = false
+      speed
+    },
+    toggle(row, col) {
       let tempWord = this.world.slice();
-      tempWord[cellRow][cellCol] = !this.world[cellRow][cellCol];
+      tempWord[row][col] = !this.world[row][col];
       this.world = tempWord.slice();
+      console.log("Cords " + row + "," + col);
+      console.log("alive Next Tick: ", this.aliveNextTick(row, col));
+      console.log("Num Neighbours", this.getNumNeighbours(row, col));
+      console.log("-----------------------------------------------");
     },
     getNumNeighbours(cellRow, cellCol) {
       const startRow = cellRow - 1;
